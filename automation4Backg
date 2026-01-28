@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Escolha aqui quais diretórios cross/XX serão processados
+CROSS_LIST=("01" "02" "03" "04" "05" "06" "07" "08" "09" "10")
+# Exemplo: CROSS_LIST=("01" "03" "07" "08") → pula 02,04,05,06,09
+
+# Subdiretórios internos fixos
+SUBS=("2" "4")
+
+for CROSS in "${CROSS_LIST[@]}"; do
+    BASE="cross/$CROSS"
+
+    if [[ ! -d "$BASE" ]]; then
+        echo "Ignorando $BASE (não existe)"
+        continue
+    fi
+
+    for S in "${SUBS[@]}"; do
+        TARGET="$BASE/$S"
+
+        if [[ ! -d "$TARGET" ]]; then
+            continue
+        fi
+
+        echo "Processando: $TARGET"
+
+        (
+            cd "$TARGET" || exit 0
+            sleep 0.5
+
+            # Chamada ao GDL com delays internos
+            timeout 120 gdl <<EOF
+; Aguarda antes de rodar (evita travar)
+wait, 0.5
+
+; Comando desejado
+backg, width=150, res=0.1, zstart=-5, zstop=0, znum=21, refr=3, hoff=-4.77,ham=1
+
+; Aguarda após finalizar (evita erro de I/O)
+wait, 0.5
+
+exit
+EOF
+
+            sleep 0.5
+        )
+    done
+done
