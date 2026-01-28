@@ -1,0 +1,74 @@
+#!/bin/bash
+
+clear
+echo "==========================================================================="
+echo "                                                                           "
+echo "         RADAZ – EXECUÇÃO AUTOMÁTICA GDL (IMAGE1 + BACKG)                  "
+echo "                                                                           "
+echo "   Este script irá processar automaticamente as pastas ques estão          "
+echo "   definidas em:    SUBS=("x" "x" "x" "7" "x")                             "
+echo "                                                                           "
+echo "      e as bandas que estão em: for i in 02 05 07; do  (por exemplo)       "
+echo "                                                                           "
+echo "                                                                           "
+echo "   Para cada diretório existente, o GDL será chamado e serão executados:   "
+echo "                                                                           "
+echo "      1) image1                                                            "
+echo "      2) backg,width=150,res=0.2,zstart=-3,zstop=0,znum=7,refr=3           "
+echo "                                                                           "
+echo "   CERTIFIQUE-SE de que:                                                   "
+echo "      - Você está dentro da pasta: processing                              "
+echo "      - Os diretórios cross/XX existem                                     "
+echo "      - Vc entrou no MICROMAMBA                                            "
+echo "                                                                           "
+echo "==========================================================================="
+echo ""
+sleep 2
+
+
+
+
+# Bandas a processar dentro de cada cross/XX/ Ex.: SUBS=("2" "3" "4" "7" "8") vai fazer as bandas 2 (lhh); 3 (lhv); 4 (p); 7 (lvv); 8 (lvh)
+SUBS=("1") #escolha a banda a ser processada
+
+# Loop principal: entra em cada voo. Ex.: for i in 02 05 07; do
+for i in 01 02 03 04 05 06 07 08 09 10; do
+    echo ""
+    echo "=== Entrando em cross/$i ==="
+
+    for s in "${SUBS[@]}"; do
+        DIR="cross/$i/$s"
+
+        echo ""
+        echo "Verificando diretório: $DIR"
+
+        # Se não existir, pula
+        if [[ ! -d "$DIR" ]]; then
+            echo "Diretório inexistente, pulando."
+            continue
+        fi
+
+        echo "Entrando no diretório $DIR"
+        cd "$DIR"
+
+        echo "Executando GDL..."
+        gdl <<EOF
+; Primeiro comando
+image1
+
+; Segundo comando
+backg, width=150, res=0.1, zstart=-5, zstop=0, znum=21, refr=3, hoff=-4.77, ham=1
+
+; Sair do GDL
+exit
+EOF
+
+        echo "Finalizado em: $DIR"
+        cd - > /dev/null  # volta para a pasta original
+    done
+done
+
+echo ""
+echo "==========================================================================="
+echo "PROCESSAMENTO CONCLUÍDO."
+echo "==========================================================================="
